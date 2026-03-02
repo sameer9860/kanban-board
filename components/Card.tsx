@@ -11,9 +11,10 @@ import { CSS } from "@dnd-kit/utilities";
 
 interface CardProps {
   card: CardType;
+  onCardClick?: (card: CardType) => void;
 }
 
-const Card: React.FC<CardProps> = ({ card }) => {
+const Card: React.FC<CardProps> = ({ card, onCardClick }) => {
   const {
     attributes,
     listeners,
@@ -33,9 +34,15 @@ const Card: React.FC<CardProps> = ({ card }) => {
       style={style}
       {...attributes}
       {...listeners}
-      className="bg-white shadow rounded p-2 mb-2 cursor-move"
+      onClick={() => onCardClick?.(card)}
+      className="bg-white dark:bg-gray-700 shadow hover:shadow-lg rounded p-3 mb-2 cursor-grab active:cursor-grabbing hover:bg-gray-50 dark:hover:bg-gray-600 transition-all duration-200 ease-out"
     >
-      {card.title}
+      <p className="text-gray-900 dark:text-white font-medium">{card.title}</p>
+      {card.description && (
+        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+          {card.description}
+        </p>
+      )}
     </div>
   );
 };
