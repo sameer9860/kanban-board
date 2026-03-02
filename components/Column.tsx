@@ -9,9 +9,10 @@ import { useDroppable } from "@dnd-kit/core";
 interface ColumnProps {
   column: ColumnType;
   cards: CardType[];
+  onCardClick?: (card: CardType) => void;
 }
 
-const Column: React.FC<ColumnProps> = ({ column, cards }) => {
+const Column: React.FC<ColumnProps> = ({ column, cards, onCardClick }) => {
   const { dispatch } = React.useContext(BoardContext);
   const [newCardTitle, setNewCardTitle] = React.useState("");
 
@@ -29,16 +30,30 @@ const Column: React.FC<ColumnProps> = ({ column, cards }) => {
   return (
     <div
       ref={setDroppableRef}
-      className="bg-gray-100 rounded p-2 w-64 min-h-[100px]"
+      className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 w-72 min-h-96 shadow-md transition-all duration-200 hover:shadow-lg"
     >
-      <h2 className="font-bold mb-2">{column.title}</h2>
-      {cards.map((c) => (
-        <Card key={c.id} card={c} />
-      ))}
-      <div className="mt-2">
+      <h2 className="font-bold mb-3 text-gray-900 dark:text-white text-lg">
+        {column.title}
+      </h2>
+      <div className="space-y-2">
+        {cards.length === 0 ? (
+          <p className="text-center text-gray-400 dark:text-gray-500 py-4 text-sm">
+            No cards yet
+          </p>
+        ) : (
+          cards.map((c) => (
+            <Card
+              key={c.id}
+              card={c}
+              onCardClick={onCardClick}
+            />
+          ))
+        )}
+      </div>
+      <div className="mt-3 space-y-2">
         <input
-          className="w-full border rounded p-1 mb-1"
-          placeholder="New card"
+          className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 mb-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+          placeholder="+ New card"
           value={newCardTitle}
           onChange={(e) => setNewCardTitle(e.target.value)}
           onKeyDown={(e) => {
@@ -46,7 +61,7 @@ const Column: React.FC<ColumnProps> = ({ column, cards }) => {
           }}
         />
         <button
-          className="w-full bg-green-500 text-white rounded p-1"
+          className="w-full bg-green-500 hover:bg-green-600 text-white rounded p-2 transition-colors duration-150 font-medium"
           onClick={addCard}
         >
           Add card
