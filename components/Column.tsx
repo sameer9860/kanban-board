@@ -9,10 +9,9 @@ import { useDroppable } from "@dnd-kit/core";
 interface ColumnProps {
   column: ColumnType;
   cards: CardType[];
-  onCardClick?: (card: CardType) => void;
 }
 
-const Column: React.FC<ColumnProps> = ({ column, cards, onCardClick }) => {
+const Column: React.FC<ColumnProps> = ({ column, cards }) => {
   const { dispatch } = React.useContext(BoardContext);
   const [newCardTitle, setNewCardTitle] = React.useState("");
 
@@ -45,7 +44,6 @@ const Column: React.FC<ColumnProps> = ({ column, cards, onCardClick }) => {
             <Card
               key={c.id}
               card={c}
-              onCardClick={onCardClick}
             />
           ))
         )}
