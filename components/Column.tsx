@@ -2,6 +2,7 @@ import React from "react";
 import { Column as ColumnType, Card as CardType } from "../types/board";
 import Card from "./Card";
 import BoardContext from "../context/BoardContext";
+import { useDroppable } from "@dnd-kit/core";
 
 interface ColumnProps {
   column: ColumnType;
@@ -11,6 +12,8 @@ interface ColumnProps {
 const Column: React.FC<ColumnProps> = ({ column, cards }) => {
   const { dispatch } = React.useContext(BoardContext);
   const [newCardTitle, setNewCardTitle] = React.useState("");
+
+  const { setNodeRef: setDroppableRef } = useDroppable({ id: column.id });
 
   const addCard = () => {
     if (!newCardTitle.trim()) return;
@@ -22,7 +25,10 @@ const Column: React.FC<ColumnProps> = ({ column, cards }) => {
   };
 
   return (
-    <div className="bg-gray-100 rounded p-2 w-64">
+    <div
+      ref={setDroppableRef}
+      className="bg-gray-100 rounded p-2 w-64 min-h-[100px]"
+    >
       <h2 className="font-bold mb-2">{column.title}</h2>
       {cards.map((c) => (
         <Card key={c.id} card={c} />
