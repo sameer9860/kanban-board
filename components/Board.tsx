@@ -5,6 +5,7 @@ import BoardContext from "../context/BoardContext";
 import Column from "./Column";
 import DarkModeToggle from "./DarkModeToggle";
 import { Column as ColumnType, Card as CardType } from "../types/board";
+import CardModal from "./CardModal";
 import {
   DndContext,
   PointerSensor,
@@ -12,11 +13,15 @@ import {
   useSensors,
   DragEndEvent,
 } from "@dnd-kit/core";
-import { SortableContext } from "@dnd-kit/sortable";
+import {
+  SortableContext,
+  horizontalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
 const Board: React.FC = () => {
   const { state, dispatch } = useContext(BoardContext);
   const [newTitle, setNewTitle] = React.useState("");
+  const [activeCard, setActiveCard] = React.useState<CardType | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -26,6 +31,29 @@ const Board: React.FC = () => {
     const activeId = active.id as string;
     const overId = over.id as string;
 
+    // column reordering
+    if (state.columnOrder.includes(activeId)) {
+      // find destination index
+      let destColId = overId;
+      if (!state.columnOrder.includes(destColId)) {
+        // dropped on a card -> find its column
+        destColId =
+          state.columnOrder.find((cid) =>
+            state.columns[cid].cardIds.includes(overId)
+          ) || destColId;
+      }
+      const sourceIndex = state.columnOrder.indexOf(activeId);
+      const destIndex = state.columnOrder.indexOf(destColId);
+      if (sourceIndex !== -1 && destIndex !== -1 && sourceIndex !== destIndex) {
+        dispatch({
+          type: "REORDER_COLUMNS",
+          payload: { sourceIndex, destIndex },
+        });
+      }
+      return;
+    }
+
+    // card movement (existing logic)
     let sourceColumnId = "";
     let destColumnId = "";
     let destIndex = 0;
@@ -78,23 +106,29 @@ const Board: React.FC = () => {
       <DarkModeToggle />
       <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
         <div className="flex space-x-4 p-4 pb-8 overflow-x-auto min-h-screen bg-white dark:bg-gray-900 transition-colors duration-200">
-          {state.columnOrder.map((colId) => {
-            const column: ColumnType = state.columns[colId];
-            const cards: CardType[] = column.cardIds.map((id) => state.cards[id]);
-            return (
-              <SortableContext
-                key={colId}
-                items={column.cardIds}
-                strategy={undefined}
-              >
-                <Column
+          <SortableContext
+            items={state.columnOrder}
+            strategy={horizontalListSortingStrategy}
+          >
+            {state.columnOrder.map((colId) => {
+              const column: ColumnType = state.columns[colId];
+              const cards: CardType[] = column.cardIds.map((id) => state.cards[id]);
+              return (
+                <SortableContext
                   key={colId}
-                  column={column}
-                  cards={cards}
-                />
-              </SortableContext>
-            );
-          })}
+                  items={column.cardIds}
+                  strategy={undefined}
+                >
+                  <Column
+                    key={colId}
+                    column={column}
+                    cards={cards}
+                    onCardClick={(c) => setActiveCard(c)}
+                  />
+                </SortableContext>
+              );
+            })}
+          </SortableContext>
           <div className="flex-shrink-0 w-72 p-3">
             <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 shadow-md">
               <h2 className="font-bold mb-3 text-gray-900 dark:text-white text-lg">
@@ -119,6 +153,9 @@ const Board: React.FC = () => {
           </div>
         </div>
       </DndContext>
+      {activeCard && (
+        <CardModal card={activeCard} onClose={() => setActiveCard(null)} />
+      )}
     </>
   );
 };

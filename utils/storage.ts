@@ -1,6 +1,6 @@
 import { BoardState } from "../types/board";
 
-const STORAGE_KEY = "kanban-board-state";
+export const STORAGE_KEY = "kanban-board-state";
 
 export function saveBoard(state: BoardState) {
   try {

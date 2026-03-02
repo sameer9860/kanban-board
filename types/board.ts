@@ -2,6 +2,10 @@ export interface Card {
   id: string
   title: string
   description?: string
+  /** ISO string for a due date, if set */
+  dueDate?: string
+  /** Array of label names attached to the card */
+  labels?: string[]
 }
 
 export interface Column {

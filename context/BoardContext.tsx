@@ -16,6 +16,14 @@ export type Action =
         destIndex: number;
       };
     }
+  | { type: "EDIT_COLUMN_TITLE"; payload: { columnId: string; title: string } }
+  | { type: "DELETE_CARD"; payload: { cardId: string } }
+  | { type: "DELETE_COLUMN"; payload: { columnId: string } }
+  | {
+      type: "REORDER_COLUMNS";
+      payload: { sourceIndex: number; destIndex: number };
+    }
+  | { type: "UPDATE_CARD"; payload: { cardId: string; updates: Partial<Card> } }
   | { type: "SET_INITIAL_STATE"; payload: BoardState };
 
 interface BoardContextProps {
@@ -23,7 +31,7 @@ interface BoardContextProps {
   dispatch: Dispatch<Action>;
 }
 
-import { loadBoard, saveBoard } from "../utils/storage";
+import { loadBoard, saveBoard, STORAGE_KEY } from "../utils/storage";
 
 const initialState: BoardState = {
   cards: {},
@@ -95,6 +103,74 @@ function boardReducer(state: BoardState, action: Action): BoardState {
       };
     }
 
+    case "EDIT_COLUMN_TITLE": {
+      const { columnId, title } = action.payload;
+      const column = state.columns[columnId];
+      if (!column) return state;
+      return {
+        ...state,
+        columns: {
+          ...state.columns,
+          [columnId]: { ...column, title },
+        },
+      };
+    }
+
+    case "DELETE_CARD": {
+      const { cardId } = action.payload;
+      const newCards = { ...state.cards };
+      delete newCards[cardId];
+      const newColumns = Object.fromEntries(
+        Object.entries(state.columns).map(([id, col]) => [
+          id,
+          { ...col, cardIds: col.cardIds.filter((c) => c !== cardId) },
+        ])
+      );
+      return {
+        ...state,
+        cards: newCards,
+        columns: newColumns,
+      };
+    }
+
+    case "DELETE_COLUMN": {
+      const { columnId } = action.payload;
+      const newColumns = { ...state.columns };
+      const column = newColumns[columnId];
+      if (!column) return state;
+      // remove associated cards
+      const newCards = { ...state.cards };
+      column.cardIds.forEach((cid) => delete newCards[cid]);
+      delete newColumns[columnId];
+      return {
+        ...state,
+        columns: newColumns,
+        cards: newCards,
+        columnOrder: state.columnOrder.filter((id) => id !== columnId),
+      };
+    }
+
+    case "REORDER_COLUMNS": {
+      const { sourceIndex, destIndex } = action.payload;
+      const newOrder = [...state.columnOrder];
+      const [moved] = newOrder.splice(sourceIndex, 1);
+      newOrder.splice(destIndex, 0, moved);
+      return {
+        ...state,
+        columnOrder: newOrder,
+      };
+    }
+
+    case "UPDATE_CARD": {
+      const { cardId, updates } = action.payload;
+      const card = state.cards[cardId];
+      if (!card) return state;
+      return {
+        ...state,
+        cards: { ...state.cards, [cardId]: { ...card, ...updates } },
+      };
+    }
+
     default:
       return state;
   }
@@ -110,6 +186,20 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
       dispatch({ type: "SET_INITIAL_STATE", payload: saved });
     }
     setIsLoaded(true);
+  }, []);
+
+  // sync with other tabs/windows via storage event
+  React.useEffect(() => {
+    const handler = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY && e.newValue) {
+        try {
+          const parsed: BoardState = JSON.parse(e.newValue);
+          dispatch({ type: "SET_INITIAL_STATE", payload: parsed });
+        } catch {}
+      }
+    };
+    window.addEventListener("storage", handler);
+    return () => window.removeEventListener("storage", handler);
   }, []);
 
   React.useEffect(() => {

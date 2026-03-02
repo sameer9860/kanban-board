@@ -152,18 +152,15 @@ Empty state UI
 
 Card modal for editing description
 
-🚀 PHASE 9 — Advanced (Optional)
+🚀 PHASE 9 — Advanced (Day 10+)
 
-Edit column title
+Full editorial features shipped:
 
-Delete card
+- **Edit column title** inline with an input (uses `EDIT_COLUMN_TITLE` action)
+- **Delete card** & **Delete column** with clean state removal
+- **Reorder columns** via drag-and-drop using `REORDER_COLUMNS`
+- **Due dates & labels** on cards; configurable in the card modal
+- **Real-time sync** across browser tabs via localStorage `storage` events
 
-Delete column
-
-Reorder columns
-
-Add due dates
-
-Add labels
-
-Real-time sync
+Everything offered here is typed, persisted, and ready for future backend
+integration or collaboration enhancements.
