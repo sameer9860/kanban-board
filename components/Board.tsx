@@ -4,7 +4,6 @@ import React, { useContext } from "react";
 import BoardContext from "../context/BoardContext";
 import Column from "./Column";
 import DarkModeToggle from "./DarkModeToggle";
-import CardModal from "./CardModal";
 import { Column as ColumnType, Card as CardType } from "../types/board";
 import {
   DndContext,
@@ -18,7 +17,6 @@ import { SortableContext } from "@dnd-kit/sortable";
 const Board: React.FC = () => {
   const { state, dispatch } = useContext(BoardContext);
   const [newTitle, setNewTitle] = React.useState("");
-  const [selectedCard, setSelectedCard] = React.useState<CardType | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -93,7 +91,6 @@ const Board: React.FC = () => {
                   key={colId}
                   column={column}
                   cards={cards}
-                  onCardClick={setSelectedCard}
                 />
               </SortableContext>
             );
@@ -122,7 +119,6 @@ const Board: React.FC = () => {
           </div>
         </div>
       </DndContext>
-      <CardModal card={selectedCard} onClose={() => setSelectedCard(null)} />
     </>
   );
 };
