@@ -15,7 +15,8 @@ export type Action =
         cardId: string;
         destIndex: number;
       };
-    };
+    }
+  | { type: "SET_INITIAL_STATE"; payload: BoardState };
 
 interface BoardContextProps {
   state: BoardState;
@@ -24,7 +25,7 @@ interface BoardContextProps {
 
 import { loadBoard, saveBoard } from "../utils/storage";
 
-const initialState: BoardState = loadBoard() || {
+const initialState: BoardState = {
   cards: {},
   columns: {},
   columnOrder: [],
@@ -37,6 +38,9 @@ const BoardContext = createContext<BoardContextProps>({
 
 function boardReducer(state: BoardState, action: Action): BoardState {
   switch (action.type) {
+    case "SET_INITIAL_STATE":
+      return action.payload;
+
     case "ADD_COLUMN": {
       const id = `column-${Date.now()}`;
       return {
@@ -98,10 +102,21 @@ function boardReducer(state: BoardState, action: Action): BoardState {
 
 export const BoardProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(boardReducer, initialState);
+  const [isLoaded, setIsLoaded] = React.useState(false);
 
   React.useEffect(() => {
-    saveBoard(state);
-  }, [state]);
+    const saved = loadBoard();
+    if (saved) {
+      dispatch({ type: "SET_INITIAL_STATE", payload: saved });
+    }
+    setIsLoaded(true);
+  }, []);
+
+  React.useEffect(() => {
+    if (isLoaded) {
+      saveBoard(state);
+    }
+  }, [state, isLoaded]);
 
   return (
     <BoardContext.Provider value={{ state, dispatch }}>
