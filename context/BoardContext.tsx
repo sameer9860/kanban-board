@@ -20,7 +20,9 @@ interface BoardContextProps {
   dispatch: Dispatch<Action>;
 }
 
-const initialState: BoardState = {
+import { loadBoard, saveBoard } from "../utils/storage";
+
+const initialState: BoardState = loadBoard() || {
   cards: {},
   columns: {},
   columnOrder: [],
@@ -94,6 +96,11 @@ function boardReducer(state: BoardState, action: Action): BoardState {
 
 export const BoardProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(boardReducer, initialState);
+
+  React.useEffect(() => {
+    saveBoard(state);
+  }, [state]);
+
   return (
     <BoardContext.Provider value={{ state, dispatch }}>
       {children}
