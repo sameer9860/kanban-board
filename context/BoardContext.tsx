@@ -1,3 +1,5 @@
+"use client";
+
 import React, { createContext, useReducer, ReactNode, Dispatch } from "react";
 import { BoardState, Card, Column } from "../types/board";
 

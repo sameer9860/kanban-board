@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { Column as ColumnType, Card as CardType } from "../types/board";
 import Card from "./Card";

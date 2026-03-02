@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useContext } from "react";
 import BoardContext from "../context/BoardContext";
 import Column from "./Column";
