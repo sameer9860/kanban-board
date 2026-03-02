@@ -3,6 +3,8 @@
 import React, { useContext } from "react";
 import BoardContext from "../context/BoardContext";
 import Column from "./Column";
+import DarkModeToggle from "./DarkModeToggle";
+import CardModal from "./CardModal";
 import { Column as ColumnType, Card as CardType } from "../types/board";
 import {
   DndContext,
@@ -16,6 +18,7 @@ import { SortableContext } from "@dnd-kit/sortable";
 const Board: React.FC = () => {
   const { state, dispatch } = useContext(BoardContext);
   const [newTitle, setNewTitle] = React.useState("");
+  const [selectedCard, setSelectedCard] = React.useState<CardType | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -73,40 +76,54 @@ const Board: React.FC = () => {
   };
 
   return (
-    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-      <div className="flex space-x-4 p-4 overflow-x-auto">
-        {state.columnOrder.map((colId) => {
-          const column: ColumnType = state.columns[colId];
-          const cards: CardType[] = column.cardIds.map((id) => state.cards[id]);
-          return (
-            <SortableContext
-              key={colId}
-              items={column.cardIds}
-              strategy={undefined}
-            >
-              <Column key={colId} column={column} cards={cards} />
-            </SortableContext>
-          );
-        })}
-        <div className="flex-shrink-0 w-64 p-2">
-          <input
-            className="w-full border rounded p-1 mb-2"
-            placeholder="New column"
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") addColumn();
-            }}
-          />
-          <button
-            className="w-full bg-blue-500 text-white rounded p-1"
-            onClick={addColumn}
-          >
-            Add column
-          </button>
+    <>
+      <DarkModeToggle />
+      <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+        <div className="flex space-x-4 p-4 pb-8 overflow-x-auto min-h-screen bg-white dark:bg-gray-900 transition-colors duration-200">
+          {state.columnOrder.map((colId) => {
+            const column: ColumnType = state.columns[colId];
+            const cards: CardType[] = column.cardIds.map((id) => state.cards[id]);
+            return (
+              <SortableContext
+                key={colId}
+                items={column.cardIds}
+                strategy={undefined}
+              >
+                <Column
+                  key={colId}
+                  column={column}
+                  cards={cards}
+                  onCardClick={setSelectedCard}
+                />
+              </SortableContext>
+            );
+          })}
+          <div className="flex-shrink-0 w-72 p-3">
+            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3 shadow-md">
+              <h2 className="font-bold mb-3 text-gray-900 dark:text-white text-lg">
+                + New Column
+              </h2>
+              <input
+                className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 mb-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                placeholder="Column title..."
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") addColumn();
+                }}
+              />
+              <button
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded p-2 transition-colors duration-150 font-medium"
+                onClick={addColumn}
+              >
+                Add column
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-    </DndContext>
+      </DndContext>
+      <CardModal card={selectedCard} onClose={() => setSelectedCard(null)} />
+    </>
   );
 };
 
