@@ -4,12 +4,22 @@ import React, { useState } from "react";
 
 const DarkModeToggle: React.FC = () => {
   const [isDark, setIsDark] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   React.useEffect(() => {
-    const savedDarkMode = localStorage.getItem("darkMode") === "true";
-    setIsDark(savedDarkMode);
-    if (savedDarkMode) {
+    // Check system preference
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const savedDarkMode = localStorage.getItem("darkMode");
+    
+    const shouldBeDark = savedDarkMode ? savedDarkMode === "true" : prefersDark;
+    
+    setIsDark(shouldBeDark);
+    setMounted(true);
+    
+    if (shouldBeDark) {
       document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
     }
   }, []);
 
@@ -17,12 +27,15 @@ const DarkModeToggle: React.FC = () => {
     const newDarkMode = !isDark;
     setIsDark(newDarkMode);
     localStorage.setItem("darkMode", newDarkMode.toString());
+    
     if (newDarkMode) {
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
     }
   };
+
+  if (!mounted) return null;
 
   return (
     <button
